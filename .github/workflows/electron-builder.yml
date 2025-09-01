@@ -1,12 +1,5 @@
-appId: com.srgbtoacescct.converter
-productName: sRGB-to-ACEScct
-files:
-  - "**/*"
-extraMetadata:
-  main: main.js
-win:
-  target: nsis
-mac:
-  target: dmg
-linux:
-  target: AppImage
+appId: com.example.srgb-acescct-converter
+productName: sRGB-to-ACEScct Converter
+directories:
+  output: dist
+publish: never
