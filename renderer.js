@@ -34,7 +34,6 @@ document.getElementById("convert").addEventListener("click", () => {
   if (hex.startsWith("#")) hex = hex.slice(1);
   if (hex.length !== 6) return alert("Enter a valid 6-digit hex code!");
 
-  // Extract sRGB
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
@@ -47,19 +46,16 @@ document.getElementById("convert").addEventListener("click", () => {
   const floatStr = `${rACES.toFixed(4)}, ${gACES.toFixed(4)}, ${bACES.toFixed(4)}`;
   document.getElementById("aces-float").innerText = floatStr;
 
-  // Show original HEX
+  // Original HEX + swatch
   const srgbHex = `#${hex.toUpperCase()}`;
   document.getElementById("srgb-hex").innerText = srgbHex;
   document.getElementById("srgb-swatch").style.backgroundColor = srgbHex;
 
-  // ACEScct → Linear → sRGB → HEX (Preview)
-  const rPrev = clamp(linearToSRGB(ACEScctToLinear(rACES)));
-  const gPrev = clamp(linearToSRGB(ACEScctToLinear(gACES)));
-  const bPrev = clamp(linearToSRGB(ACEScctToLinear(bACES)));
-
-  const previewHex = `#${toHex(rPrev)}${toHex(gPrev)}${toHex(bPrev)}`.toUpperCase();
-  document.getElementById("aces-hex").innerText = previewHex;
-  document.getElementById("aces-swatch").style.backgroundColor = previewHex;
+  // Fake ACEScct HEX mapping (0–1 → 0–255)
+  const rMap = clamp(rACES), gMap = clamp(gACES), bMap = clamp(bACES);
+  const acesHex = `#${toHex(rMap)}${toHex(gMap)}${toHex(bMap)}`.toUpperCase();
+  document.getElementById("aces-hex").innerText = acesHex;
+  document.getElementById("aces-swatch").style.backgroundColor = acesHex;
 });
 
 // === Backward: ACEScct Float → sRGB ===
@@ -70,7 +66,6 @@ document.getElementById("convert-back").addEventListener("click", () => {
   const parts = floatStr.split(",").map(v => parseFloat(v.trim()));
   if (parts.length !== 3 || parts.some(isNaN)) return alert("Invalid float values!");
 
-  // ACEScct → Linear → sRGB
   const rSRGB = clamp(linearToSRGB(ACEScctToLinear(parts[0])));
   const gSRGB = clamp(linearToSRGB(ACEScctToLinear(parts[1])));
   const bSRGB = clamp(linearToSRGB(ACEScctToLinear(parts[2])));
@@ -84,7 +79,13 @@ document.getElementById("convert-back").addEventListener("click", () => {
 function copyText(id) {
   const text = document.getElementById(id).innerText;
   navigator.clipboard.writeText(text).then(() => {
-    const copiedMsg = document.getElementById("copied-" + id.split("-")[1]);
+    let copiedId;
+    if (id === "aces-float") copiedId = "copied-float";
+    else if (id === "srgb-hex") copiedId = "copied-srgb";
+    else if (id === "aces-hex") copiedId = "copied-aces";
+    else if (id === "back-hex") copiedId = "copied-back";
+
+    const copiedMsg = document.getElementById(copiedId);
     if (copiedMsg) {
       copiedMsg.style.display = "inline";
       setTimeout(() => (copiedMsg.style.display = "none"), 1000);
