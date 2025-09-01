@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>sRGB → ACEScct Converter</title>
+  <title>sRGB ↔ ACEScct Converter</title>
   <script defer src="renderer.js"></script>
   <style>
     body {
@@ -11,7 +11,7 @@
       background: #f7f7f7;
     }
     .container {
-      max-width: 400px;
+      max-width: 480px;
       margin: auto;
       padding: 20px;
       background: white;
@@ -32,50 +32,113 @@
       border-radius: 8px;
     }
     button {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
+      padding: 8px 14px;
+      font-size: 14px;
       background: #4CAF50;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
+      margin-left: 10px;
     }
     button:hover {
       background: #45a049;
     }
-    #result {
-      margin-top: 20px;
-      padding: 15px;
+    #convert, #convert-back {
+      width: 100%;
+      margin: 0;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .output {
+      margin-top: 15px;
+      padding: 12px;
       border-radius: 8px;
       background: #fafafa;
       border: 1px solid #ddd;
     }
-    #aces-swatch {
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .value {
+      flex-grow: 1;
+      word-break: break-word;
+    }
+    .swatch {
       width: 40px;
       height: 40px;
       border-radius: 6px;
       border: 1px solid #aaa;
       margin-left: 10px;
     }
-    .row {
+    .preview-row {
       display: flex;
       align-items: center;
-      margin-top: 10px;
+      margin-top: 15px;
+    }
+    .copied {
+      color: #4CAF50;
+      font-size: 12px;
+      margin-left: 8px;
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>sRGB → ACEScct Converter</h1>
-    <input id="hex" type="text" placeholder="Enter HEX (e.g. #FF0000)">
-    <button id="convert">Convert</button>
-    <div id="result">
-      <p><strong>ACEScct Float:</strong> <span id="aces-float">—</span></p>
-      <p><strong>ACEScct HEX Preview:</strong> <span id="aces-hex">—</span></p>
+    <h1>sRGB ↔ ACEScct Converter</h1>
+
+    <!-- Forward -->
+    <input id="hex" type="text" placeholder="Enter sRGB HEX (e.g. #FF0000)">
+    <button id="convert">Convert to ACEScct</button>
+    
+    <div class="output">
       <div class="row">
-        <span>Preview:</span>
-        <div id="aces-swatch"></div>
+        <strong>ACEScct Float:</strong>
+      </div>
+      <div class="row">
+        <span class="value" id="aces-float">—</span>
+        <button onclick="copyText('aces-float')">Copy</button>
+        <span class="copied" id="copied-float">Copied!</span>
+      </div>
+    </div>
+
+    <div class="output">
+      <div class="row">
+        <strong>Original sRGB HEX:</strong>
+      </div>
+      <div class="row">
+        <span class="value" id="srgb-hex">—</span>
+        <div class="swatch" id="srgb-swatch"></div>
+      </div>
+    </div>
+
+    <div class="output">
+      <div class="row">
+        <strong>ACEScct HEX (Preview):</strong>
+      </div>
+      <div class="row">
+        <span class="value" id="aces-hex">—</span>
+        <div class="swatch" id="aces-swatch"></div>
+      </div>
+    </div>
+
+    <!-- Backward -->
+    <input id="float" type="text" placeholder="Enter ACEScct Float (R,G,B)">
+    <button id="convert-back">Convert to sRGB</button>
+    
+    <div class="output">
+      <div class="row">
+        <strong>sRGB HEX:</strong>
+      </div>
+      <div class="row">
+        <span class="value" id="back-hex">—</span>
+        <button onclick="copyText('back-hex')">Copy</button>
+        <span class="copied" id="copied-back">Copied!</span>
+        <div class="swatch" id="back-swatch"></div>
       </div>
     </div>
   </div>
