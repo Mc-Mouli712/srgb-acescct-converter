@@ -1,33 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>sRGB → ACEScct Converter</title>
+  <script defer src="renderer.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
-    input { padding: 8px; margin: 10px; font-size: 16px; }
-    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-    #result { margin-top: 20px; font-weight: bold; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f7f7f7;
+    }
+    .container {
+      max-width: 400px;
+      margin: auto;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #fafafa;
+      border: 1px solid #ddd;
+    }
+    #aces-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      border: 1px solid #aaa;
+      margin-left: 10px;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h2>sRGB → ACEScct Converter</h2>
-  <p>Enter HEX color code (example: #FFAA33)</p>
-  <input id="hexInput" type="text" placeholder="#RRGGBB">
-<button id="convertBtn">Convert</button>
-<div id="result"></div>
-
-<script src="renderer.js"></script>
-
-  <script>
-    function convert() {
-      const hex = document.getElementById('hexInput').value;
-      if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-        document.getElementById('result').innerText = window.convertToACEScct(hex);
-      } else {
-        document.getElementById('result').innerText = "❌ Please enter a valid HEX code";
-      }
-    }
-  </script>
+  <div class="container">
+    <h1>sRGB → ACEScct Converter</h1>
+    <input id="hex" type="text" placeholder="Enter HEX (e.g. #FF0000)">
+    <button id="convert">Convert</button>
+    <div id="result">
+      <p><strong>ACEScct Float:</strong> <span id="aces-float">—</span></p>
+      <p><strong>ACEScct HEX Preview:</strong> <span id="aces-hex">—</span></p>
+      <div class="row">
+        <span>Preview:</span>
+        <div id="aces-swatch"></div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
