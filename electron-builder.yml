@@ -1,0 +1,5 @@
+appId: com.example.srgb-acescct-converter
+productName: sRGB-to-ACEScct Converter
+directories:
+  output: dist
+publish: never
