@@ -1,82 +1,64 @@
-// Convert HEX (#RRGGBB) to RGB [0-1]
-function hexToRgb(hex) {
-  hex = hex.replace("#", "");
-  const bigint = parseInt(hex, 16);
-  return [
-    ((bigint >> 16) & 255) / 255,
-    ((bigint >> 8) & 255) / 255,
-    (bigint & 255) / 255,
-  ];
-}
-
-// Apply sRGB → Linear
 function srgbToLinear(c) {
+  c = c / 255;
   return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 }
 
-// Apply Linear → sRGB
-function linearToSrgb(c) {
-  return c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
-}
-
-// Clamp helper (to keep values in [0,1])
-function clamp01(x) {
-  return Math.min(1, Math.max(0, x));
-}
-
-// Convert [0–1] RGB → HEX
-function rgbToHex(rgb) {
-  return (
-    "#" +
-    rgb
-      .map((v) => {
-        const c = Math.round(clamp01(v) * 255)
-          .toString(16)
-          .padStart(2, "0");
-        return c;
-      })
-      .join("")
-  );
-}
-
-// Convert sRGB → ACEScct
-function srgbToAcescct(hex) {
-  const srgb = hexToRgb(hex).map(srgbToLinear);
-
-  // sRGB → ACEScg matrix
-  const M = [
-    [0.6131, 0.3395, 0.0474],
-    [0.0702, 0.9160, 0.0138],
-    [0.0206, 0.1096, 0.8698],
-  ];
-
-  const acescg = [
-    srgb[0] * M[0][0] + srgb[1] * M[0][1] + srgb[2] * M[0][2],
-    srgb[0] * M[1][0] + srgb[1] * M[1][1] + srgb[2] * M[1][2],
-    srgb[0] * M[2][0] + srgb[1] * M[2][1] + srgb[2] * M[2][2],
-  ];
-
-  // Apply ACEScct curve
-  function toAcescct(x) {
-    if (x <= 0.0078125) return 10.5402377416545 * x + 0.0729055341958355;
-    return (Math.log2(x) + 9.72) / 17.52;
+function linearToACEScct(x) {
+  const a = 0.0078125;
+  const b = 0.155251141552511;
+  if (x < a * b) {
+    return 10.5402377416545 * x + 0.0729055341958355;
   }
-
-  const acescct = acescg.map(toAcescct);
-
-  return acescct;
+  return (Math.log10(x * 171.2102946929 + 1.0) + 9.72) / 17.52;
 }
 
-// Hook to button
-document.getElementById("convertBtn").addEventListener("click", () => {
-  const hex = document.getElementById("hexInput").value;
-  const acescct = srgbToAcescct(hex);
+function ACEScctToLinear(x) {
+  const a = 0.0078125;
+  if (x < 0.155251141552511) {
+    return (x - 0.0729055341958355) / 10.5402377416545;
+  }
+  return (Math.pow(10, (x * 17.52) - 9.72) - 1.0) / 171.2102946929;
+}
 
-  // For visualization → just convert back to HEX (approx)
-  const acescctHex = rgbToHex(acescct);
+function linearToSRGB(c) {
+  return c <= 0.0031308
+    ? c * 12.92
+    : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+}
 
-  document.getElementById("result").innerHTML = `
-    <p>ACEScct (float): ${acescct.map((v) => v.toFixed(5)).join(", ")}</p>
-    <p>ACEScct HEX: <span style="color:${acescctHex}">${acescctHex}</span></p>
-  `;
+document.getElementById("convert").addEventListener("click", () => {
+  let hex = document.getElementById("hex").value.trim();
+  if (hex.startsWith("#")) hex = hex.slice(1);
+  if (hex.length !== 6) return alert("Enter a valid 6-digit hex code!");
+
+  // Extract RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+
+  // sRGB → Linear → ACEScct
+  const rLin = srgbToLinear(r);
+  const gLin = srgbToLinear(g);
+  const bLin = srgbToLinear(b);
+
+  const rACES = linearToACEScct(rLin);
+  const gACES = linearToACEScct(gLin);
+  const bACES = linearToACEScct(bLin);
+
+  // Show floats
+  document.getElementById("aces-float").innerText =
+    `${rACES.toFixed(4)}, ${gACES.toFixed(4)}, ${bACES.toFixed(4)}`;
+
+  // For artist preview: ACEScct → Linear → sRGB → HEX
+  const rPrev = Math.min(Math.max(linearToSRGB(ACEScctToLinear(rACES)), 0), 1);
+  const gPrev = Math.min(Math.max(linearToSRGB(ACEScctToLinear(gACES)), 0), 1);
+  const bPrev = Math.min(Math.max(linearToSRGB(ACEScctToLinear(bACES)), 0), 1);
+
+  const rHex = Math.round(rPrev * 255).toString(16).padStart(2, "0");
+  const gHex = Math.round(gPrev * 255).toString(16).padStart(2, "0");
+  const bHex = Math.round(bPrev * 255).toString(16).padStart(2, "0");
+
+  const previewHex = `#${rHex}${gHex}${bHex}`;
+  document.getElementById("aces-hex").innerText = previewHex.toUpperCase();
+  document.getElementById("aces-swatch").style.backgroundColor = previewHex;
 });
