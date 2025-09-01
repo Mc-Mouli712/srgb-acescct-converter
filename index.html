@@ -5,86 +5,18 @@
   <title>sRGB ↔ ACEScct Converter</title>
   <script defer src="renderer.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 30px;
-      background: #f7f7f7;
-    }
-    .container {
-      max-width: 480px;
-      margin: auto;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h1 {
-      font-size: 20px;
-      margin-bottom: 15px;
-      text-align: center;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      padding: 8px 14px;
-      font-size: 14px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-left: 10px;
-    }
-    button:hover {
-      background: #45a049;
-    }
-    #convert, #convert-back {
-      width: 100%;
-      margin: 0;
-      margin-bottom: 20px;
-      font-size: 16px;
-    }
-    .output {
-      margin-top: 15px;
-      padding: 12px;
-      border-radius: 8px;
-      background: #fafafa;
-      border: 1px solid #ddd;
-    }
-    .row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 10px;
-    }
-    .value {
-      flex-grow: 1;
-      word-break: break-word;
-    }
-    .swatch {
-      width: 40px;
-      height: 40px;
-      border-radius: 6px;
-      border: 1px solid #aaa;
-      margin-left: 10px;
-    }
-    .preview-row {
-      display: flex;
-      align-items: center;
-      margin-top: 15px;
-    }
-    .copied {
-      color: #4CAF50;
-      font-size: 12px;
-      margin-left: 8px;
-      display: none;
-    }
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f7f7f7; }
+    .container { max-width: 500px; margin: auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h1 { font-size: 20px; margin-bottom: 15px; text-align: center; }
+    input { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; }
+    button { padding: 8px 14px; font-size: 14px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px; }
+    button:hover { background: #45a049; }
+    #convert, #convert-back { width: 100%; margin-bottom: 20px; font-size: 16px; }
+    .output { margin-top: 15px; padding: 12px; border-radius: 8px; background: #fafafa; border: 1px solid #ddd; }
+    .row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .value { flex-grow: 1; word-break: break-word; }
+    .swatch { width: 40px; height: 40px; border-radius: 6px; border: 1px solid #aaa; margin-left: 10px; }
+    .copied { color: #4CAF50; font-size: 12px; margin-left: 8px; display: none; }
   </style>
 </head>
 <body>
@@ -96,9 +28,7 @@
     <button id="convert">Convert to ACEScct</button>
     
     <div class="output">
-      <div class="row">
-        <strong>ACEScct Float:</strong>
-      </div>
+      <div class="row"><strong>ACEScct Float:</strong></div>
       <div class="row">
         <span class="value" id="aces-float">—</span>
         <button onclick="copyText('aces-float')">Copy</button>
@@ -107,21 +37,21 @@
     </div>
 
     <div class="output">
-      <div class="row">
-        <strong>Original sRGB HEX:</strong>
-      </div>
+      <div class="row"><strong>Original sRGB HEX:</strong></div>
       <div class="row">
         <span class="value" id="srgb-hex">—</span>
+        <button onclick="copyText('srgb-hex')">Copy</button>
+        <span class="copied" id="copied-srgb">Copied!</span>
         <div class="swatch" id="srgb-swatch"></div>
       </div>
     </div>
 
     <div class="output">
-      <div class="row">
-        <strong>ACEScct HEX (Preview):</strong>
-      </div>
+      <div class="row"><strong>ACEScct HEX (Mapped):</strong></div>
       <div class="row">
         <span class="value" id="aces-hex">—</span>
+        <button onclick="copyText('aces-hex')">Copy</button>
+        <span class="copied" id="copied-aces">Copied!</span>
         <div class="swatch" id="aces-swatch"></div>
       </div>
     </div>
@@ -131,9 +61,7 @@
     <button id="convert-back">Convert to sRGB</button>
     
     <div class="output">
-      <div class="row">
-        <strong>sRGB HEX:</strong>
-      </div>
+      <div class="row"><strong>sRGB HEX:</strong></div>
       <div class="row">
         <span class="value" id="back-hex">—</span>
         <button onclick="copyText('back-hex')">Copy</button>
