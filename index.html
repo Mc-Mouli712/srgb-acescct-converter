@@ -1,107 +1,81 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>sRGB ↔ ACES — Production-accurate Converter</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script defer src="renderer.js"></script>
+  <meta charset="UTF-8">
+  <title>sRGB → ACEScct Converter</title>
   <style>
-    :root{--accent:#2563eb;--ok:#16a34a}
-    body{font-family:Inter, Arial, sans-serif;background:#f3f4f6;margin:24px}
-    .wrap{max-width:900px;margin:0 auto;background:#fff;border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(2,6,23,0.08)}
-    h1{font-size:20px;margin:0 0 8px;color:#0f172a}
-    p.lead{margin:0 0 16px;color:#475569;font-size:13px}
-    .controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-    input[type="text"]{padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px;min-width:220px}
-    button.primary{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
-    button.secondary{background:#eef2ff;color:var(--accent);border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
-    .grid{display:grid;grid-template-columns:1fr 1fr 1fr 80px;gap:12px;align-items:center;margin-top:12px}
-    .col-head{font-weight:600;color:#0f172a;font-size:13px}
-    .cell{padding:10px;border-radius:8px;background:#fafafa;border:1px solid #eef2f6;font-size:13px;min-height:72px;display:flex;flex-direction:column;justify-content:center}
-    .row-label{font-weight:600;color:#0f172a}
-    .val{font-family:monospace;font-size:13px;color:#0b1220;margin-top:6px}
-    .small{font-size:12px;color:#64748b}
-    .swatch{width:60px;height:44px;border-radius:6px;border:1px solid #cfd8e3}
-    .copy-btn{background:#111827;color:#fff;border:0;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px}
-    .controls-right{margin-left:auto;display:flex;gap:8px;align-items:center}
-    .toggle{display:flex;align-items:center;gap:8px}
-    .note{margin-top:12px;font-size:12px;color:#475569}
-    .footer{margin-top:14px;font-size:12px;color:#64748b}
-    .row{display:flex;gap:12px;align-items:center}
+    body { font-family: sans-serif; background:#1c1c1c; color:#fff; display:flex; flex-direction:column; align-items:center; padding:20px;}
+    input { padding:10px; font-size:16px; margin:10px; width:150px;}
+    button { padding:10px 20px; font-size:16px; margin:10px; cursor:pointer;}
+    .color-box { width:100px; height:50px; margin:5px; border:1px solid #fff;}
+    .row { display:flex; align-items:center; margin:10px;}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>sRGB ↔ ACES — production-accurate converter</h1>
-    <p class="lead">Paste sRGB HEX, press Convert. Shows production floats for ACES2065-1 (AP0), ACEScg (AP1), ACEScct and tone-mapped previews. Toggle preview mode to use RRT+ODT approximation.</p>
+  <h1>sRGB → ACEScct Hex Converter</h1>
 
-    <div class="controls">
-      <input id="hexInput" type="text" placeholder="#FF4400 or FF4400" />
-      <button id="convert" class="primary">Convert → ACES</button>
-
-      <div class="controls-right">
-        <div class="toggle small">
-          <label><input id="useRRT" type="checkbox" /> Use RRT+ODT preview</label>
-        </div>
-        <button id="runTests" class="secondary">Run quick tests</button>
-      </div>
-    </div>
-
-    <!-- grid header -->
-    <div class="grid" style="grid-template-columns:180px 1fr 1fr 120px;align-items:start;">
-      <div class="col-head">Space</div>
-      <div class="col-head">Float (R, G, B)</div>
-      <div class="col-head">Preview HEX (tone-mapped)</div>
-      <div class="col-head">Swatch / Copy</div>
-
-      <!-- sRGB row -->
-      <div class="row-label">sRGB (input)</div>
-      <div class="cell"><div class="val" id="srgb-float">—</div><div class="small">encoded sRGB / gamma</div></div>
-      <div class="cell"><div class="val" id="srgb-hex">—</div></div>
-      <div class="cell"><div style="display:flex;flex-direction:column;gap:8px;align-items:center">
-        <div class="swatch" id="srgb-swatch"></div>
-        <button class="copy-btn" onclick="copyText('srgb-hex')">Copy HEX</button>
-      </div></div>
-
-      <!-- ACES2065-1 -->
-      <div class="row-label">ACES2065-1 (AP0)</div>
-      <div class="cell"><div class="val" id="ap0-float">—</div><div class="small">linear AP0 (scene)</div></div>
-      <div class="cell"><div class="val" id="ap0-hex">—</div></div>
-      <div class="cell"><div style="display:flex;flex-direction:column;gap:8px;align-items:center">
-        <div class="swatch" id="ap0-swatch"></div>
-        <div style="display:flex;gap:8px">
-          <button class="copy-btn" onclick="copyText('ap0-float')">Copy floats</button>
-          <button class="copy-btn" onclick="copyText('ap0-hex')">Copy HEX</button>
-        </div>
-      </div></div>
-
-      <!-- ACEScg -->
-      <div class="row-label">ACEScg (AP1)</div>
-      <div class="cell"><div class="val" id="ap1-float">—</div><div class="small">linear AP1 (rendering)</div></div>
-      <div class="cell"><div class="val" id="ap1-hex">—</div></div>
-      <div class="cell"><div style="display:flex;flex-direction:column;gap:8px;align-items:center">
-        <div class="swatch" id="ap1-swatch"></div>
-        <div style="display:flex;gap:8px">
-          <button class="copy-btn" onclick="copyText('ap1-float')">Copy floats</button>
-          <button class="copy-btn" onclick="copyText('ap1-hex')">Copy HEX</button>
-        </div>
-      </div></div>
-
-      <!-- ACEScct -->
-      <div class="row-label">ACEScct</div>
-      <div class="cell"><div class="val" id="cct-float">—</div><div class="small">encoded for grading</div></div>
-      <div class="cell"><div class="val" id="cct-hex">—</div></div>
-      <div class="cell"><div style="display:flex;flex-direction:column;gap:8px;align-items:center">
-        <div class="swatch" id="cct-swatch"></div>
-        <div style="display:flex;gap:8px">
-          <button class="copy-btn" onclick="copyText('cct-float')">Copy floats</button>
-          <button class="copy-btn" onclick="copyText('cct-hex')">Copy HEX</button>
-        </div>
-      </div></div>
-    </div>
-
-    <p class="note">Notes: Floats are production-accurate (AP0/AP1 & ACEScct). Previews are tone-mapped back to sRGB for display. Toggle RRT+ODT preview for an ACES-like view (approximation included) — if you need bit-for-bit OCIO/ACES reference appearance we can plug in the official RRT reference implementation next.</p>
-    <div class="footer">Tip: use the "Run quick tests" to compare reference colors (#FF0000, #00FF00, #0000FF).</div>
+  <div class="row">
+    <input id="srgbHex" type="text" placeholder="#RRGGBB">
+    <div class="color-box" id="srgbBox"></div>
   </div>
+
+  <div class="row">
+    <input id="acesHex" readonly placeholder="#RRGGBB">
+    <div class="color-box" id="acesBox"></div>
+    <button id="copyBtn">Copy ACES Hex</button>
+  </div>
+
+  <button id="convertBtn">Convert</button>
+
+  <script>
+    // Helper functions
+    function hexToLinearRGB(hex) {
+      let r = parseInt(hex.slice(1,3),16)/255;
+      let g = parseInt(hex.slice(3,5),16)/255;
+      let b = parseInt(hex.slice(5,7),16)/255;
+
+      // sRGB → linear
+      const linear = (c) => c<=0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055,2.4);
+      return [linear(r), linear(g), linear(b)];
+    }
+
+    function linearRGBtoACEScct(rgb) {
+      // sRGB linear → ACES2065-1 (using ACES2065-1 primaries)
+      // simplified matrix from sRGB D65 → ACES AP1
+      let [r,g,b] = rgb;
+      let R = 0.59719*r + 0.35458*g + 0.04823*b;
+      let G = 0.07600*r + 0.90834*g + 0.01566*b;
+      let B = 0.02840*r + 0.13383*g + 0.83777*b;
+
+      // ACEScct encoding
+      const toCCT = (c) => c<=0.0078125 ? 10.5402377416545*c : (Math.log2(c*0.002 + 1.0)*0.5 + 0.010) ;
+      return [toCCT(R), toCCT(G), toCCT(B)];
+    }
+
+    function linearToHex(rgb) {
+      const clamp = (c) => Math.min(1, Math.max(0, c));
+      return "#" + rgb.map(c => Math.round(clamp(c)*255).toString(16).padStart(2,'0')).join('');
+    }
+
+    document.getElementById('convertBtn').onclick = () => {
+      let srgbHex = document.getElementById('srgbHex').value;
+      if(!/^#([0-9a-fA-F]{6})$/.test(srgbHex)) { alert("Enter valid #RRGGBB hex"); return; }
+
+      document.getElementById('srgbBox').style.backgroundColor = srgbHex;
+
+      let linearRGB = hexToLinearRGB(srgbHex);
+      let acesRGB = linearRGBtoACEScct(linearRGB);
+
+      let acesHex = linearToHex(acesRGB);
+      document.getElementById('acesHex').value = acesHex;
+      document.getElementById('acesBox').style.backgroundColor = acesHex;
+    }
+
+    document.getElementById('copyBtn').onclick = () => {
+      document.getElementById('acesHex').select();
+      document.execCommand('copy');
+      alert("ACEScct Hex copied!");
+    }
+  </script>
 </body>
 </html>
