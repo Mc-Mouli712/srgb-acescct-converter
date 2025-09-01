@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>sRGB → ACEScct Converter</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+    input { padding: 8px; margin: 10px; font-size: 16px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #result { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>sRGB → ACEScct Converter</h2>
+  <p>Enter HEX color code (example: #FFAA33)</p>
+  <input type="text" id="hexInput" placeholder="#RRGGBB" />
+  <button onclick="convert()">Convert</button>
+  <div id="result"></div>
+
+  <script>
+    function convert() {
+      const hex = document.getElementById('hexInput').value;
+      if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+        document.getElementById('result').innerText = window.convertToACEScct(hex);
+      } else {
+        document.getElementById('result').innerText = "❌ Please enter a valid HEX code";
+      }
+    }
+  </script>
+</body>
+</html>
