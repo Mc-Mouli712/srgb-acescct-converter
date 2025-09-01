@@ -13,9 +13,11 @@
 <body>
   <h2>sRGB → ACEScct Converter</h2>
   <p>Enter HEX color code (example: #FFAA33)</p>
-  <input type="text" id="hexInput" placeholder="#RRGGBB" />
-  <button onclick="convert()">Convert</button>
-  <div id="result"></div>
+  <input id="hexInput" type="text" placeholder="#RRGGBB">
+<button id="convertBtn">Convert</button>
+<div id="result"></div>
+
+<script src="renderer.js"></script>
 
   <script>
     function convert() {
